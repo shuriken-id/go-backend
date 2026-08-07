@@ -29,7 +29,7 @@ func Generate(userID uint, role, secret string, hours int) (string, error) {
 func Parse(tokenStr, secret string) (*Claims, error) {
 	claims := &Claims{}
 	t, err := jwt.ParseWithClaims(tokenStr, claims, func(t *jwt.Token) (interface{}, error) {
-		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+		if t.Method != jwt.SigningMethodHS256 {
 			return nil, errors.New("unexpected signing method")
 		}
 		return []byte(secret), nil

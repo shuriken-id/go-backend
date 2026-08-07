@@ -66,6 +66,29 @@ func TestTodoAccessDeniedForNonOwner(t *testing.T) {
 	}
 }
 
+func TestTodoUpdateDeniedForNonOwner(t *testing.T) {
+	db := newTestDB(t)
+	svc := NewTodoService(db)
+	owner := models.User{Email: "owner@x.com", PasswordHash: "h", Role: models.RoleUser}
+	other := models.User{Email: "other@x.com", PasswordHash: "h", Role: models.RoleUser}
+	if err := db.Create(&owner).Error; err != nil {
+		t.Fatal(err)
+	}
+	if err := db.Create(&other).Error; err != nil {
+		t.Fatal(err)
+	}
+	todo := models.Todo{Title: "secret", OwnerID: owner.ID}
+	if err := db.Create(&todo).Error; err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.Update(todo.ID, other.ID, false, map[string]interface{}{"title": "hacked"}); !errors.Is(err, ErrNotFound) {
+		t.Errorf("expected ErrNotFound on non-owner update, got %v", err)
+	}
+	if err := svc.Delete(todo.ID, other.ID, false); !errors.Is(err, ErrNotFound) {
+		t.Errorf("expected ErrNotFound on non-owner delete, got %v", err)
+	}
+}
+
 func TestTodoListByOwner(t *testing.T) {
 	db := newTestDB(t)
 	svc := NewTodoService(db)
