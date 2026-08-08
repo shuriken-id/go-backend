@@ -5,8 +5,8 @@ import "github.com/gofiber/fiber/v3"
 func CORS() fiber.Handler {
 	return func(c fiber.Ctx) error {
 		c.Set("Access-Control-Allow-Origin", "*")
-		c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		c.Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		c.Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS")
+		c.Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin, X-Requested-With")
 		if c.Method() == fiber.MethodOptions {
 			return c.SendStatus(fiber.StatusNoContent)
 		}

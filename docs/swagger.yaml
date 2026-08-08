@@ -79,7 +79,6 @@ definitions:
       updated_at:
         type: string
     type: object
-host: localhost:8080
 info:
   contact: {}
   description: A template REST API with JWT auth and todo CRUD.

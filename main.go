@@ -15,7 +15,6 @@ import (
 // @title       Go REST API Template API
 // @version     1.0
 // @description A template REST API with JWT auth and todo CRUD.
-// @host        localhost:8080
 // @BasePath    /api/v1
 
 // @securityDefinitions.apikey BearerAuth
