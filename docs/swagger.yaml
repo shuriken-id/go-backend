@@ -330,6 +330,7 @@ paths:
       - users
 securityDefinitions:
   BearerAuth:
+    description: Type "Bearer " followed by token or enter token directly.
     in: header
     name: Authorization
     type: apiKey

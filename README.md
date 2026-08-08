@@ -58,7 +58,7 @@ Setiap kali mengubah anotasi `@` pada handler:
 
 ```bash
 swag init
-rm docs/docs.go
+rm -f docs/docs.go
 ```
 
 Output: `docs/swagger.json`, `docs/swagger.yaml`. Swagger UI melayani `docs/swagger.json` langsung dari disk tanpa runtime swag dependency.
@@ -72,9 +72,16 @@ go test ./... -race    # dengan race detector
 
 Test memakai SQLite in-memory (`github.com/glebarez/sqlite`) — tidak butuh database.
 
-## Endpoint
+## Endpoint & Dokumentasi Swagger
 
 Buka dokumentasi interaktif: **http://localhost:8080/swagger**
+
+### Autentikasi di Swagger UI:
+1. Login terlebih dahulu via endpoint `/api/v1/auth/login` untuk mendapatkan token.
+2. Klik tombol **Authorize** (ikon gembok hijau di pojok kanan atas Swagger UI).
+3. Masukkan `Bearer <token>` atau langsung tempel `<token>` pada kolom input `Value:`.
+4. Klik **Authorize** lalu **Close**.
+5. Semua endpoint bertanda gembok terproteksi siap diuji langsung dari browser!
 
 | Method | Path | Auth | Deskripsi |
 |--------|------|------|-----------|
@@ -89,7 +96,7 @@ Buka dokumentasi interaktif: **http://localhost:8080/swagger**
 | `PUT` | `/api/v1/todos/:id` | ✅ | Ubah todo (pemilik/admin) |
 | `DELETE` | `/api/v1/todos/:id` | ✅ | Hapus todo (pemilik/admin) |
 
-### Contoh penggunaan
+### Contoh penggunaan via cURL
 
 Register:
 

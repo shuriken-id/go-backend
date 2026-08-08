@@ -47,12 +47,17 @@ func app(chain ...fiber.Handler) *fiber.App {
 
 func doRequest(t *testing.T, a *fiber.App, tokenStr string) int {
 	t.Helper()
+	return doRequestWithHeader(t, a, "Bearer "+tokenStr)
+}
+
+func doRequestWithHeader(t *testing.T, a *fiber.App, headerVal string) int {
+	t.Helper()
 	req, err := http.NewRequest(http.MethodGet, "/", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if tokenStr != "" {
-		req.Header.Set("Authorization", "Bearer "+tokenStr)
+	if headerVal != "" {
+		req.Header.Set("Authorization", headerVal)
 	}
 	resp, err := a.Test(req)
 	if err != nil {
@@ -82,10 +87,30 @@ func TestRequireAuthValidToken(t *testing.T) {
 	}
 }
 
+func TestRequireAuthRawTokenWithoutBearerPrefix(t *testing.T) {
+	db := newTestDB(t)
+	u := createUser(t, db, "raw@x.com", models.RoleUser)
+	tk, err := token.Generate(u.ID, u.Role, testSecret, 24)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var sawEmail string
+	inner := func(c fiber.Ctx) error {
+		sawEmail = CurrentUser(c).Email
+		return c.SendStatus(http.StatusOK)
+	}
+	if code := doRequestWithHeader(t, app(RequireAuth(db, testSecret), inner), tk); code != http.StatusOK {
+		t.Errorf("expected 200, got %d", code)
+	}
+	if sawEmail != u.Email {
+		t.Errorf("expected current user %q, got %q", u.Email, sawEmail)
+	}
+}
+
 func TestRequireAuthMissingHeader(t *testing.T) {
 	db := newTestDB(t)
 	ok := func(c fiber.Ctx) error { return c.SendStatus(http.StatusOK) }
-	if code := doRequest(t, app(RequireAuth(db, testSecret), ok), ""); code != http.StatusUnauthorized {
+	if code := doRequestWithHeader(t, app(RequireAuth(db, testSecret), ok), ""); code != http.StatusUnauthorized {
 		t.Errorf("expected 401, got %d", code)
 	}
 }

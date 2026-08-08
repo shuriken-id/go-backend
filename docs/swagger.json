@@ -520,6 +520,7 @@
     },
     "securityDefinitions": {
         "BearerAuth": {
+            "description": "Type \"Bearer \" followed by token or enter token directly.",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

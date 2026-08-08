@@ -21,6 +21,7 @@ import (
 // @securityDefinitions.apikey BearerAuth
 // @in   header
 // @name Authorization
+// @description Type "Bearer " followed by token or enter token directly.
 
 func main() {
 	if err := godotenv.Load(); err != nil && !os.IsNotExist(err) {

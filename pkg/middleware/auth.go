@@ -15,11 +15,14 @@ const userKey = "user"
 
 func RequireAuth(db *gorm.DB, secret string) fiber.Handler {
 	return func(c fiber.Ctx) error {
-		header := c.Get("Authorization")
-		if header == "" || !strings.HasPrefix(header, "Bearer ") {
+		header := strings.TrimSpace(c.Get("Authorization"))
+		if header == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(dto.ErrorResponse{Error: "missing or invalid authorization header"})
 		}
-		tokenStr := strings.TrimPrefix(header, "Bearer ")
+		tokenStr := header
+		if strings.HasPrefix(strings.ToLower(header), "bearer ") {
+			tokenStr = strings.TrimSpace(header[7:])
+		}
 		claims, err := token.Parse(tokenStr, secret)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(dto.ErrorResponse{Error: err.Error()})
