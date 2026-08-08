@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v3"
 
 	"go-backend/internal/dto"
 )
 
-func respondError(c *gin.Context, status int, message string) {
-	c.JSON(status, dto.ErrorResponse{Error: message})
+func respondError(c fiber.Ctx, status int, message string) error {
+	return c.Status(status).JSON(dto.ErrorResponse{Error: message})
 }

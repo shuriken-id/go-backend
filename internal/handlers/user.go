@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v3"
 
 	"go-backend/internal/dto"
 	"go-backend/internal/services"
@@ -26,9 +26,9 @@ func NewUserHandler(svc *services.UserService) *UserHandler {
 // @Success     200 {object} dto.UserResponse
 // @Failure     401 {object} dto.ErrorResponse
 // @Router      /api/v1/users/me [get]
-func (h *UserHandler) Me(c *gin.Context) {
+func (h *UserHandler) Me(c fiber.Ctx) error {
 	user := middleware.CurrentUser(c)
-	c.JSON(http.StatusOK, dto.FromUser(*user))
+	return c.JSON(dto.FromUser(*user))
 }
 
 // List godoc
@@ -40,15 +40,14 @@ func (h *UserHandler) Me(c *gin.Context) {
 // @Failure     401 {object} dto.ErrorResponse
 // @Failure     403 {object} dto.ErrorResponse
 // @Router      /api/v1/users [get]
-func (h *UserHandler) List(c *gin.Context) {
+func (h *UserHandler) List(c fiber.Ctx) error {
 	users, err := h.svc.List()
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to list users")
-		return
+		return respondError(c, http.StatusInternalServerError, "failed to list users")
 	}
 	resp := make([]dto.UserResponse, 0, len(users))
 	for _, u := range users {
 		resp = append(resp, dto.FromUser(u))
 	}
-	c.JSON(http.StatusOK, resp)
+	return c.JSON(resp)
 }

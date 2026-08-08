@@ -3,9 +3,8 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v3"
 
 	"go-backend/internal/dto"
 	"go-backend/internal/models"
@@ -29,18 +28,17 @@ func NewTodoHandler(svc *services.TodoService) *TodoHandler {
 // @Success     200 {array} dto.TodoResponse
 // @Failure     401 {object} dto.ErrorResponse
 // @Router      /api/v1/todos [get]
-func (h *TodoHandler) List(c *gin.Context) {
+func (h *TodoHandler) List(c fiber.Ctx) error {
 	user := middleware.CurrentUser(c)
 	todos, err := h.svc.ListByOwner(user.ID)
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to list todos")
-		return
+		return respondError(c, http.StatusInternalServerError, "failed to list todos")
 	}
 	resp := make([]dto.TodoResponse, 0, len(todos))
 	for _, t := range todos {
 		resp = append(resp, dto.FromTodo(t))
 	}
-	c.JSON(http.StatusOK, resp)
+	return c.JSON(resp)
 }
 
 // Create godoc
@@ -54,19 +52,17 @@ func (h *TodoHandler) List(c *gin.Context) {
 // @Failure     400 {object} dto.ErrorResponse
 // @Failure     401 {object} dto.ErrorResponse
 // @Router      /api/v1/todos [post]
-func (h *TodoHandler) Create(c *gin.Context) {
+func (h *TodoHandler) Create(c fiber.Ctx) error {
 	user := middleware.CurrentUser(c)
 	var req dto.CreateTodoRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "title is required")
-		return
+	if err := c.Bind().Body(&req); err != nil {
+		return respondError(c, http.StatusBadRequest, "title is required")
 	}
 	todo, err := h.svc.Create(user.ID, req.Title, req.Description)
 	if err != nil {
-		respondError(c, http.StatusInternalServerError, "failed to create todo")
-		return
+		return respondError(c, http.StatusInternalServerError, "failed to create todo")
 	}
-	c.JSON(http.StatusCreated, dto.FromTodo(*todo))
+	return c.Status(http.StatusCreated).JSON(dto.FromTodo(*todo))
 }
 
 // Get godoc
@@ -79,18 +75,17 @@ func (h *TodoHandler) Create(c *gin.Context) {
 // @Failure     401 {object} dto.ErrorResponse
 // @Failure     404 {object} dto.ErrorResponse
 // @Router      /api/v1/todos/{id} [get]
-func (h *TodoHandler) Get(c *gin.Context) {
+func (h *TodoHandler) Get(c fiber.Ctx) error {
 	id, ok := parseID(c)
 	if !ok {
-		return
+		return nil
 	}
 	user := middleware.CurrentUser(c)
 	todo, err := h.svc.Get(id, user.ID, user.Role == models.RoleAdmin)
 	if err != nil {
-		respondTodoError(c, err)
-		return
+		return respondTodoError(c, err)
 	}
-	c.JSON(http.StatusOK, dto.FromTodo(*todo))
+	return c.JSON(dto.FromTodo(*todo))
 }
 
 // Update godoc
@@ -106,16 +101,15 @@ func (h *TodoHandler) Get(c *gin.Context) {
 // @Failure     401  {object} dto.ErrorResponse
 // @Failure     404  {object} dto.ErrorResponse
 // @Router      /api/v1/todos/{id} [put]
-func (h *TodoHandler) Update(c *gin.Context) {
+func (h *TodoHandler) Update(c fiber.Ctx) error {
 	id, ok := parseID(c)
 	if !ok {
-		return
+		return nil
 	}
 	user := middleware.CurrentUser(c)
 	var req dto.UpdateTodoRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid request body")
-		return
+	if err := c.Bind().Body(&req); err != nil {
+		return respondError(c, http.StatusBadRequest, "invalid request body")
 	}
 	updates := make(map[string]interface{})
 	if req.Title != nil {
@@ -129,10 +123,9 @@ func (h *TodoHandler) Update(c *gin.Context) {
 	}
 	todo, err := h.svc.Update(id, user.ID, user.Role == models.RoleAdmin, updates)
 	if err != nil {
-		respondTodoError(c, err)
-		return
+		return respondTodoError(c, err)
 	}
-	c.JSON(http.StatusOK, dto.FromTodo(*todo))
+	return c.JSON(dto.FromTodo(*todo))
 }
 
 // Delete godoc
@@ -144,32 +137,30 @@ func (h *TodoHandler) Update(c *gin.Context) {
 // @Failure     401 {object} dto.ErrorResponse
 // @Failure     404 {object} dto.ErrorResponse
 // @Router      /api/v1/todos/{id} [delete]
-func (h *TodoHandler) Delete(c *gin.Context) {
+func (h *TodoHandler) Delete(c fiber.Ctx) error {
 	id, ok := parseID(c)
 	if !ok {
-		return
+		return nil
 	}
 	user := middleware.CurrentUser(c)
 	if err := h.svc.Delete(id, user.ID, user.Role == models.RoleAdmin); err != nil {
-		respondTodoError(c, err)
-		return
+		return respondTodoError(c, err)
 	}
-	c.Status(http.StatusNoContent)
+	return c.SendStatus(http.StatusNoContent)
 }
 
-func parseID(c *gin.Context) (uint, bool) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
+func parseID(c fiber.Ctx) (uint, bool) {
+	id := fiber.Params[int](c, "id", 0)
+	if id <= 0 {
 		respondError(c, http.StatusBadRequest, "invalid todo id")
 		return 0, false
 	}
 	return uint(id), true
 }
 
-func respondTodoError(c *gin.Context, err error) {
+func respondTodoError(c fiber.Ctx, err error) error {
 	if errors.Is(err, services.ErrNotFound) {
-		respondError(c, http.StatusNotFound, err.Error())
-		return
+		return respondError(c, http.StatusNotFound, err.Error())
 	}
-	respondError(c, http.StatusInternalServerError, "todo operation failed")
+	return respondError(c, http.StatusInternalServerError, "todo operation failed")
 }

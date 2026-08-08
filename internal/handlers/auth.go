@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v3"
 
 	"go-backend/internal/dto"
 	"go-backend/internal/services"
@@ -29,22 +29,19 @@ func NewAuthHandler(svc *services.AuthService) *AuthHandler {
 // @Failure     400 {object} dto.ErrorResponse
 // @Failure     409 {object} dto.ErrorResponse
 // @Router      /api/v1/auth/register [post]
-func (h *AuthHandler) Register(c *gin.Context) {
+func (h *AuthHandler) Register(c fiber.Ctx) error {
 	var req dto.RegisterRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid request body")
-		return
+	if err := c.Bind().Body(&req); err != nil {
+		return respondError(c, http.StatusBadRequest, "invalid request body")
 	}
 	user, err := h.svc.Register(req.Email, req.Password)
 	if err != nil {
 		if errors.Is(err, services.ErrEmailTaken) {
-			respondError(c, http.StatusConflict, err.Error())
-			return
+			return respondError(c, http.StatusConflict, err.Error())
 		}
-		respondError(c, http.StatusInternalServerError, "failed to register")
-		return
+		return respondError(c, http.StatusInternalServerError, "failed to register")
 	}
-	c.JSON(http.StatusCreated, dto.FromUser(*user))
+	return c.Status(http.StatusCreated).JSON(dto.FromUser(*user))
 }
 
 // Login godoc
@@ -58,20 +55,17 @@ func (h *AuthHandler) Register(c *gin.Context) {
 // @Failure     400 {object} dto.ErrorResponse
 // @Failure     401 {object} dto.ErrorResponse
 // @Router      /api/v1/auth/login [post]
-func (h *AuthHandler) Login(c *gin.Context) {
+func (h *AuthHandler) Login(c fiber.Ctx) error {
 	var req dto.LoginRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		respondError(c, http.StatusBadRequest, "invalid request body")
-		return
+	if err := c.Bind().Body(&req); err != nil {
+		return respondError(c, http.StatusBadRequest, "invalid request body")
 	}
 	tk, err := h.svc.Login(req.Email, req.Password)
 	if err != nil {
 		if errors.Is(err, services.ErrInvalidCredentials) {
-			respondError(c, http.StatusUnauthorized, err.Error())
-			return
+			return respondError(c, http.StatusUnauthorized, err.Error())
 		}
-		respondError(c, http.StatusInternalServerError, "failed to login")
-		return
+		return respondError(c, http.StatusInternalServerError, "failed to login")
 	}
-	c.JSON(http.StatusOK, dto.LoginResponse{Token: tk})
+	return c.Status(http.StatusOK).JSON(dto.LoginResponse{Token: tk})
 }
