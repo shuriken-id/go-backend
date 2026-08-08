@@ -25,7 +25,7 @@ func NewUserHandler(svc *services.UserService) *UserHandler {
 // @Security    BearerAuth
 // @Success     200 {object} dto.UserResponse
 // @Failure     401 {object} dto.ErrorResponse
-// @Router      /api/v1/users/me [get]
+// @Router      /users/me [get]
 func (h *UserHandler) Me(c fiber.Ctx) error {
 	user := middleware.CurrentUser(c)
 	return c.JSON(dto.FromUser(*user))
@@ -39,7 +39,7 @@ func (h *UserHandler) Me(c fiber.Ctx) error {
 // @Success     200 {array} dto.UserResponse
 // @Failure     401 {object} dto.ErrorResponse
 // @Failure     403 {object} dto.ErrorResponse
-// @Router      /api/v1/users [get]
+// @Router      /users [get]
 func (h *UserHandler) List(c fiber.Ctx) error {
 	users, err := h.svc.List()
 	if err != nil {

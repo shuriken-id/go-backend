@@ -27,7 +27,7 @@ func NewTodoHandler(svc *services.TodoService) *TodoHandler {
 // @Security    BearerAuth
 // @Success     200 {array} dto.TodoResponse
 // @Failure     401 {object} dto.ErrorResponse
-// @Router      /api/v1/todos [get]
+// @Router      /todos [get]
 func (h *TodoHandler) List(c fiber.Ctx) error {
 	user := middleware.CurrentUser(c)
 	todos, err := h.svc.ListByOwner(user.ID)
@@ -51,7 +51,7 @@ func (h *TodoHandler) List(c fiber.Ctx) error {
 // @Success     201 {object} dto.TodoResponse
 // @Failure     400 {object} dto.ErrorResponse
 // @Failure     401 {object} dto.ErrorResponse
-// @Router      /api/v1/todos [post]
+// @Router      /todos [post]
 func (h *TodoHandler) Create(c fiber.Ctx) error {
 	user := middleware.CurrentUser(c)
 	var req dto.CreateTodoRequest
@@ -74,7 +74,7 @@ func (h *TodoHandler) Create(c fiber.Ctx) error {
 // @Success     200 {object} dto.TodoResponse
 // @Failure     401 {object} dto.ErrorResponse
 // @Failure     404 {object} dto.ErrorResponse
-// @Router      /api/v1/todos/{id} [get]
+// @Router      /todos/{id} [get]
 func (h *TodoHandler) Get(c fiber.Ctx) error {
 	id, ok := parseID(c)
 	if !ok {
@@ -100,7 +100,7 @@ func (h *TodoHandler) Get(c fiber.Ctx) error {
 // @Failure     400  {object} dto.ErrorResponse
 // @Failure     401  {object} dto.ErrorResponse
 // @Failure     404  {object} dto.ErrorResponse
-// @Router      /api/v1/todos/{id} [put]
+// @Router      /todos/{id} [put]
 func (h *TodoHandler) Update(c fiber.Ctx) error {
 	id, ok := parseID(c)
 	if !ok {
@@ -136,7 +136,7 @@ func (h *TodoHandler) Update(c fiber.Ctx) error {
 // @Success     204 "no content"
 // @Failure     401 {object} dto.ErrorResponse
 // @Failure     404 {object} dto.ErrorResponse
-// @Router      /api/v1/todos/{id} [delete]
+// @Router      /todos/{id} [delete]
 func (h *TodoHandler) Delete(c fiber.Ctx) error {
 	id, ok := parseID(c)
 	if !ok {

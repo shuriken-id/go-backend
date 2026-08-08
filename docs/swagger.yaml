@@ -86,7 +86,7 @@ info:
   title: Go REST API Template API
   version: "1.0"
 paths:
-  /api/v1/auth/login:
+  /auth/login:
     post:
       consumes:
       - application/json
@@ -116,7 +116,7 @@ paths:
       summary: Login and get a JWT
       tags:
       - auth
-  /api/v1/auth/register:
+  /auth/register:
     post:
       consumes:
       - application/json
@@ -146,7 +146,7 @@ paths:
       summary: Register a new user
       tags:
       - auth
-  /api/v1/todos:
+  /todos:
     get:
       produces:
       - application/json
@@ -196,7 +196,7 @@ paths:
       summary: Create a todo for the current user
       tags:
       - todos
-  /api/v1/todos/{id}:
+  /todos/{id}:
     delete:
       parameters:
       - description: Todo ID
@@ -286,7 +286,7 @@ paths:
       summary: Update a todo
       tags:
       - todos
-  /api/v1/users:
+  /users:
     get:
       produces:
       - application/json
@@ -310,7 +310,7 @@ paths:
       summary: List all users (admin only)
       tags:
       - users
-  /api/v1/users/me:
+  /users/me:
     get:
       produces:
       - application/json

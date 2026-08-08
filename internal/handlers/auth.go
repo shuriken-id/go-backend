@@ -28,7 +28,7 @@ func NewAuthHandler(svc *services.AuthService) *AuthHandler {
 // @Success     201 {object} dto.UserResponse
 // @Failure     400 {object} dto.ErrorResponse
 // @Failure     409 {object} dto.ErrorResponse
-// @Router      /api/v1/auth/register [post]
+// @Router      /auth/register [post]
 func (h *AuthHandler) Register(c fiber.Ctx) error {
 	var req dto.RegisterRequest
 	if err := c.Bind().Body(&req); err != nil {
@@ -54,7 +54,7 @@ func (h *AuthHandler) Register(c fiber.Ctx) error {
 // @Success     200 {object} dto.LoginResponse
 // @Failure     400 {object} dto.ErrorResponse
 // @Failure     401 {object} dto.ErrorResponse
-// @Router      /api/v1/auth/login [post]
+// @Router      /auth/login [post]
 func (h *AuthHandler) Login(c fiber.Ctx) error {
 	var req dto.LoginRequest
 	if err := c.Bind().Body(&req); err != nil {
