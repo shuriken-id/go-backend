@@ -249,7 +249,11 @@ func createUser(t *testing.T, db *gorm.DB, email, role string) *models.User {
 
 func app(chain ...fiber.Handler) *fiber.App {
 	r := fiber.New()
-	r.Get("/", chain...)
+	handlers := make([]any, len(chain))
+	for i, h := range chain {
+		handlers[i] = h
+	}
+	r.Get("/", handlers[0], handlers[1:]...)
 	return r
 }
 
