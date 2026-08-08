@@ -2,11 +2,10 @@ package middleware
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/glebarez/sqlite"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 
 	"go-backend/internal/models"
@@ -36,22 +35,31 @@ func createUser(t *testing.T, db *gorm.DB, email, role string) *models.User {
 	return u
 }
 
-func app(chain ...gin.HandlerFunc) http.Handler {
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	r.GET("/", chain...)
+func app(chain ...fiber.Handler) *fiber.App {
+	r := fiber.New()
+	handlers := make([]any, len(chain))
+	for i, h := range chain {
+		handlers[i] = h
+	}
+	r.Get("/", handlers[0], handlers[1:]...)
 	return r
 }
 
-func doRequest(t *testing.T, h http.Handler, tokenStr string) *httptest.ResponseRecorder {
+func doRequest(t *testing.T, a *fiber.App, tokenStr string) int {
 	t.Helper()
-	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if tokenStr != "" {
 		req.Header.Set("Authorization", "Bearer "+tokenStr)
 	}
-	rec := httptest.NewRecorder()
-	h.ServeHTTP(rec, req)
-	return rec
+	resp, err := a.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	return resp.StatusCode
 }
 
 func TestRequireAuthValidToken(t *testing.T) {
@@ -62,9 +70,12 @@ func TestRequireAuthValidToken(t *testing.T) {
 		t.Fatal(err)
 	}
 	var sawEmail string
-	inner := func(c *gin.Context) { sawEmail = CurrentUser(c).Email; c.Status(http.StatusOK) }
-	if rec := doRequest(t, app(RequireAuth(db, testSecret), inner), tk); rec.Code != http.StatusOK {
-		t.Errorf("expected 200, got %d", rec.Code)
+	inner := func(c fiber.Ctx) error {
+		sawEmail = CurrentUser(c).Email
+		return c.SendStatus(http.StatusOK)
+	}
+	if code := doRequest(t, app(RequireAuth(db, testSecret), inner), tk); code != http.StatusOK {
+		t.Errorf("expected 200, got %d", code)
 	}
 	if sawEmail != u.Email {
 		t.Errorf("expected current user %q, got %q", u.Email, sawEmail)
@@ -73,9 +84,9 @@ func TestRequireAuthValidToken(t *testing.T) {
 
 func TestRequireAuthMissingHeader(t *testing.T) {
 	db := newTestDB(t)
-	ok := func(c *gin.Context) { c.Status(http.StatusOK) }
-	if rec := doRequest(t, app(RequireAuth(db, testSecret), ok), ""); rec.Code != http.StatusUnauthorized {
-		t.Errorf("expected 401, got %d", rec.Code)
+	ok := func(c fiber.Ctx) error { return c.SendStatus(http.StatusOK) }
+	if code := doRequest(t, app(RequireAuth(db, testSecret), ok), ""); code != http.StatusUnauthorized {
+		t.Errorf("expected 401, got %d", code)
 	}
 }
 
@@ -83,9 +94,9 @@ func TestRequireAuthInvalidToken(t *testing.T) {
 	db := newTestDB(t)
 	u := createUser(t, db, "a@x.com", models.RoleUser)
 	tk, _ := token.Generate(u.ID, u.Role, "wrong-secret", 24)
-	ok := func(c *gin.Context) { c.Status(http.StatusOK) }
-	if rec := doRequest(t, app(RequireAuth(db, testSecret), ok), tk); rec.Code != http.StatusUnauthorized {
-		t.Errorf("expected 401, got %d", rec.Code)
+	ok := func(c fiber.Ctx) error { return c.SendStatus(http.StatusOK) }
+	if code := doRequest(t, app(RequireAuth(db, testSecret), ok), tk); code != http.StatusUnauthorized {
+		t.Errorf("expected 401, got %d", code)
 	}
 }
 
@@ -95,9 +106,9 @@ func TestRequireAuthUserNotInDB(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ok := func(c *gin.Context) { c.Status(http.StatusOK) }
-	if rec := doRequest(t, app(RequireAuth(db, testSecret), ok), tk); rec.Code != http.StatusUnauthorized {
-		t.Errorf("expected 401, got %d", rec.Code)
+	ok := func(c fiber.Ctx) error { return c.SendStatus(http.StatusOK) }
+	if code := doRequest(t, app(RequireAuth(db, testSecret), ok), tk); code != http.StatusUnauthorized {
+		t.Errorf("expected 401, got %d", code)
 	}
 }
 
@@ -105,15 +116,15 @@ func TestRequireRole(t *testing.T) {
 	db := newTestDB(t)
 	user := createUser(t, db, "u@x.com", models.RoleUser)
 	admin := createUser(t, db, "a@x.com", models.RoleAdmin)
-	ok := func(c *gin.Context) { c.Status(http.StatusOK) }
+	ok := func(c fiber.Ctx) error { return c.SendStatus(http.StatusOK) }
 	adminRoute := app(RequireAuth(db, testSecret), RequireRole(models.RoleAdmin), ok)
 
 	userTk, _ := token.Generate(user.ID, user.Role, testSecret, 24)
-	if rec := doRequest(t, adminRoute, userTk); rec.Code != http.StatusForbidden {
-		t.Errorf("expected 403 for user, got %d", rec.Code)
+	if code := doRequest(t, adminRoute, userTk); code != http.StatusForbidden {
+		t.Errorf("expected 403 for user, got %d", code)
 	}
 	adminTk, _ := token.Generate(admin.ID, admin.Role, testSecret, 24)
-	if rec := doRequest(t, adminRoute, adminTk); rec.Code != http.StatusOK {
-		t.Errorf("expected 200 for admin, got %d", rec.Code)
+	if code := doRequest(t, adminRoute, adminTk); code != http.StatusOK {
+		t.Errorf("expected 200 for admin, got %d", code)
 	}
 }

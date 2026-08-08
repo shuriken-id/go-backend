@@ -1,10 +1,9 @@
 package middleware
 
 import (
-	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v3"
 	"gorm.io/gorm"
 
 	"go-backend/internal/dto"
@@ -14,39 +13,35 @@ import (
 
 const userKey = "user"
 
-func RequireAuth(db *gorm.DB, secret string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		header := c.GetHeader("Authorization")
+func RequireAuth(db *gorm.DB, secret string) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		header := c.Get("Authorization")
 		if header == "" || !strings.HasPrefix(header, "Bearer ") {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse{Error: "missing or invalid authorization header"})
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(dto.ErrorResponse{Error: "missing or invalid authorization header"})
 		}
 		tokenStr := strings.TrimPrefix(header, "Bearer ")
 		claims, err := token.Parse(tokenStr, secret)
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse{Error: err.Error()})
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(dto.ErrorResponse{Error: err.Error()})
 		}
 		var user models.User
 		if err := db.First(&user, claims.Subject).Error; err != nil {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, dto.ErrorResponse{Error: "user not found"})
-			return
+			return c.Status(fiber.StatusUnauthorized).JSON(dto.ErrorResponse{Error: "user not found"})
 		}
-		c.Set(userKey, &user)
-		c.Next()
+		c.Locals(userKey, &user)
+		return c.Next()
 	}
 }
 
-func RequireRole(role string) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func RequireRole(role string) fiber.Handler {
+	return func(c fiber.Ctx) error {
 		if CurrentUser(c).Role != role {
-			c.AbortWithStatusJSON(http.StatusForbidden, dto.ErrorResponse{Error: "insufficient permissions"})
-			return
+			return c.Status(fiber.StatusForbidden).JSON(dto.ErrorResponse{Error: "insufficient permissions"})
 		}
-		c.Next()
+		return c.Next()
 	}
 }
 
-func CurrentUser(c *gin.Context) *models.User {
-	return c.MustGet(userKey).(*models.User)
+func CurrentUser(c fiber.Ctx) *models.User {
+	return c.Locals(userKey).(*models.User)
 }
