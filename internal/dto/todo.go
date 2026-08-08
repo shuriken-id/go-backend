@@ -7,7 +7,7 @@ import (
 )
 
 type CreateTodoRequest struct {
-	Title       string `json:"title" binding:"required"`
+	Title       string `json:"title" validate:"required"`
 	Description string `json:"description"`
 }
 

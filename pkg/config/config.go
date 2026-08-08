@@ -11,7 +11,7 @@ type Config struct {
 	DBURL      string
 	JWTSecret  string
 	TokenHours int
-	GinMode    string
+	AppEnv     string
 }
 
 func Load() (*Config, error) {
@@ -20,7 +20,7 @@ func Load() (*Config, error) {
 		DBURL:      os.Getenv("POSTGRESQL_DATABASE"),
 		JWTSecret:  os.Getenv("JWT_SECRET"),
 		TokenHours: getenvInt("TOKEN_HOURS", 24),
-		GinMode:    getenv("GIN_MODE", "debug"),
+		AppEnv:     getenv("APP_ENV", "development"),
 	}
 	if cfg.DBURL == "" {
 		return nil, errors.New("POSTGRESQL_DATABASE is required")
