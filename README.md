@@ -1,13 +1,13 @@
 # Go REST API Template
 
-Reusable backend scaffold untuk REST API menggunakan **Gin**, **Swagger (Swag + gin-swagger)**, dan **GORM** (Postgres), dengan autentikasi **JWT + role**, serta contoh resource CRUD yang terproteksi (Todo).
+Reusable backend scaffold untuk REST API menggunakan **Fiber v3**, **Swagger (Swag + gofiber/contrib/v3/swaggerui)**, dan **GORM** (Postgres), dengan autentikasi **JWT + role**, serta contoh resource CRUD yang terproteksi (Todo).
 
 ## Fitur
 
 - Autentikasi: register, login (bcrypt + JWT HS256)
 - Role-based access: `user` dan `admin`
 - CRUD Todo dengan ownership check (hanya pemilik atau admin)
-- Dokumentasi API Swagger otomatis di `/swagger/index.html`
+- Dokumentasi API Swagger interaktif di `/swagger` (melayani `docs/swagger.json` dari disk)
 - Struktur berlapis: `handlers → services → models`, plus `middleware`, `dto`, `config`
 - Koneksi PostgreSQL (kompatibel dengan Neon) via GORM `AutoMigrate`
 - Test berjalan di SQLite in-memory (tanpa database nyata)
@@ -40,7 +40,7 @@ cp .env.example .env
 | `JWT_SECRET` | ✅ | Secret untuk menandatangani token. Gunakan string panjang acak (mis. `openssl rand -hex 32`) |
 | `PORT` | — | Port server (default `8080`) |
 | `TOKEN_HOURS` | — | Umur token dalam jam (default `24`) |
-| `GIN_MODE` | — | `debug` / `release` (default `debug`) |
+| `APP_ENV` | — | `development` / `production` (default `development`) |
 
 > `.env` sudah di-`gitignore` — jangan commit ke repositori.
 
@@ -58,9 +58,10 @@ Setiap kali mengubah anotasi `@` pada handler:
 
 ```bash
 swag init
+rm docs/docs.go
 ```
 
-Output: `docs/swagger.json`, `docs/swagger.yaml`, `docs/docs.go`.
+Output: `docs/swagger.json`, `docs/swagger.yaml`. Swagger UI melayani `docs/swagger.json` langsung dari disk tanpa runtime swag dependency.
 
 ## Menjalankan Test
 
@@ -73,7 +74,7 @@ Test memakai SQLite in-memory (`github.com/glebarez/sqlite`) — tidak butuh dat
 
 ## Endpoint
 
-Buka dokumentasi interaktif: **http://localhost:8080/swagger/index.html**
+Buka dokumentasi interaktif: **http://localhost:8080/swagger**
 
 | Method | Path | Auth | Deskripsi |
 |--------|------|------|-----------|
@@ -119,7 +120,7 @@ curl http://localhost:8080/api/v1/todos \
 ```
 go-backend/
 ├── main.go                  # wiring: config, DB, migrate, router, swagger
-├── docs/                    # generated Swagger (swag init)
+├── docs/                    # generated Swagger (swagger.json, swagger.yaml)
 ├── pkg/
 │   ├── config/              # baca env → Config
 │   ├── database/            # koneksi GORM + AutoMigrate
