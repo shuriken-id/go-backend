@@ -114,6 +114,14 @@
                     "todos"
                 ],
                 "summary": "List current user's todos",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token atau token JWT",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -149,6 +157,12 @@
                 ],
                 "summary": "Create a todo for the current user",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token atau token JWT",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
                     {
                         "description": "Todo payload",
                         "name": "body",
@@ -197,6 +211,12 @@
                 "summary": "Get a single todo",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer token atau token JWT",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
                         "type": "integer",
                         "description": "Todo ID",
                         "name": "id",
@@ -242,6 +262,12 @@
                 ],
                 "summary": "Update a todo",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token atau token JWT",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
                     {
                         "type": "integer",
                         "description": "Todo ID",
@@ -298,6 +324,12 @@
                 "summary": "Delete a todo",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer token atau token JWT",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
                         "type": "integer",
                         "description": "Todo ID",
                         "name": "id",
@@ -338,6 +370,14 @@
                     "users"
                 ],
                 "summary": "List all users (admin only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token atau token JWT",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -377,6 +417,14 @@
                     "users"
                 ],
                 "summary": "Get current user profile",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token atau token JWT",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

@@ -25,6 +25,7 @@ func NewTodoHandler(svc *services.TodoService) *TodoHandler {
 // @Tags        todos
 // @Produce     json
 // @Security    BearerAuth
+// @Param       Authorization header string false "Bearer token atau token JWT"
 // @Success     200 {array} dto.TodoResponse
 // @Failure     401 {object} dto.ErrorResponse
 // @Router      /todos [get]
@@ -47,6 +48,7 @@ func (h *TodoHandler) List(c fiber.Ctx) error {
 // @Accept      json
 // @Produce     json
 // @Security    BearerAuth
+// @Param       Authorization header string false "Bearer token atau token JWT"
 // @Param       body body dto.CreateTodoRequest true "Todo payload"
 // @Success     201 {object} dto.TodoResponse
 // @Failure     400 {object} dto.ErrorResponse
@@ -70,6 +72,7 @@ func (h *TodoHandler) Create(c fiber.Ctx) error {
 // @Tags        todos
 // @Produce     json
 // @Security    BearerAuth
+// @Param       Authorization header string false "Bearer token atau token JWT"
 // @Param       id path int true "Todo ID"
 // @Success     200 {object} dto.TodoResponse
 // @Failure     401 {object} dto.ErrorResponse
@@ -94,6 +97,7 @@ func (h *TodoHandler) Get(c fiber.Ctx) error {
 // @Accept      json
 // @Produce     json
 // @Security    BearerAuth
+// @Param       Authorization header string false "Bearer token atau token JWT"
 // @Param       id   path int                  true "Todo ID"
 // @Param       body body dto.UpdateTodoRequest true "Fields to update"
 // @Success     200  {object} dto.TodoResponse
@@ -132,6 +136,7 @@ func (h *TodoHandler) Update(c fiber.Ctx) error {
 // @Summary     Delete a todo
 // @Tags        todos
 // @Security    BearerAuth
+// @Param       Authorization header string false "Bearer token atau token JWT"
 // @Param       id path int true "Todo ID"
 // @Success     204 "no content"
 // @Failure     401 {object} dto.ErrorResponse

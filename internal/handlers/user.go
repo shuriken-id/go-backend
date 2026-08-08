@@ -23,6 +23,7 @@ func NewUserHandler(svc *services.UserService) *UserHandler {
 // @Tags        users
 // @Produce     json
 // @Security    BearerAuth
+// @Param       Authorization header string false "Bearer token atau token JWT"
 // @Success     200 {object} dto.UserResponse
 // @Failure     401 {object} dto.ErrorResponse
 // @Router      /users/me [get]
@@ -36,6 +37,7 @@ func (h *UserHandler) Me(c fiber.Ctx) error {
 // @Tags        users
 // @Produce     json
 // @Security    BearerAuth
+// @Param       Authorization header string false "Bearer token atau token JWT"
 // @Success     200 {array} dto.UserResponse
 // @Failure     401 {object} dto.ErrorResponse
 // @Failure     403 {object} dto.ErrorResponse

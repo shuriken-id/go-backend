@@ -147,6 +147,11 @@ paths:
       - auth
   /todos:
     get:
+      parameters:
+      - description: Bearer token atau token JWT
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -169,6 +174,10 @@ paths:
       consumes:
       - application/json
       parameters:
+      - description: Bearer token atau token JWT
+        in: header
+        name: Authorization
+        type: string
       - description: Todo payload
         in: body
         name: body
@@ -198,6 +207,10 @@ paths:
   /todos/{id}:
     delete:
       parameters:
+      - description: Bearer token atau token JWT
+        in: header
+        name: Authorization
+        type: string
       - description: Todo ID
         in: path
         name: id
@@ -221,6 +234,10 @@ paths:
       - todos
     get:
       parameters:
+      - description: Bearer token atau token JWT
+        in: header
+        name: Authorization
+        type: string
       - description: Todo ID
         in: path
         name: id
@@ -250,6 +267,10 @@ paths:
       consumes:
       - application/json
       parameters:
+      - description: Bearer token atau token JWT
+        in: header
+        name: Authorization
+        type: string
       - description: Todo ID
         in: path
         name: id
@@ -287,6 +308,11 @@ paths:
       - todos
   /users:
     get:
+      parameters:
+      - description: Bearer token atau token JWT
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -311,6 +337,11 @@ paths:
       - users
   /users/me:
     get:
+      parameters:
+      - description: Bearer token atau token JWT
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
