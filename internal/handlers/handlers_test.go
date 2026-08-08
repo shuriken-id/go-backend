@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/glebarez/sqlite"
 	"github.com/gofiber/fiber/v3"
@@ -69,7 +70,7 @@ func request(t *testing.T, app *fiber.App, method, path, token string, body inte
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
 	}
-	resp, err := app.Test(req)
+	resp, err := app.Test(req, fiber.TestConfig{Timeout: 30 * time.Second})
 	if err != nil {
 		t.Fatal(err)
 	}

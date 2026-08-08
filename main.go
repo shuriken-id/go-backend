@@ -4,12 +4,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/contrib/v3/swaggerui"
 	"github.com/joho/godotenv"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-
-	_ "go-backend/docs"
 
 	"go-backend/internal/router"
 	"go-backend/pkg/config"
@@ -35,7 +31,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
-	gin.SetMode(cfg.GinMode)
 
 	db, err := database.Connect(cfg.DBURL)
 	if err != nil {
@@ -45,9 +40,14 @@ func main() {
 		log.Fatalf("failed to run migrations: %v", err)
 	}
 
-	r := router.New(db, cfg)
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	if err := r.Run(":" + cfg.Port); err != nil {
+	app := router.New(db, cfg)
+	app.Use(swaggerui.New(swaggerui.Config{
+		BasePath: "/",
+		FilePath: "./docs/swagger.json",
+		Path:     "swagger",
+		Title:    "Go REST API Template API",
+	}))
+	if err := app.Listen(":" + cfg.Port); err != nil {
 		log.Fatalf("failed to start server: %v", err)
 	}
 }
