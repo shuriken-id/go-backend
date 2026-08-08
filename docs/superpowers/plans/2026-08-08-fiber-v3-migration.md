@@ -32,7 +32,7 @@
 - Consumes: nothing.
 - Produces: `github.com/gofiber/fiber/v3`, `github.com/gofiber/contrib/v3/swaggerui`, `github.com/go-playground/validator/v10` available; gin removed. Downstream tasks depend on these being in `go.mod`.
 
-- [ ] **Step 1: Add Fiber deps**
+- [x] **Step 1: Add Fiber deps**
 
 Run (in repo root):
 
@@ -46,11 +46,11 @@ Do NOT run `go mod tidy` here: nothing imports the new modules yet, so tidy woul
 
 Expected: `go.mod` gains `github.com/gofiber/fiber/v3`, `github.com/gofiber/contrib/v3/swaggerui`, `github.com/go-playground/validator/v10` in `require`. Gin deps remain for now (still imported by handlers/router/middleware) and are dropped in Task 5's tidy.
 
-- [ ] **Step 2: Update .env.example**
+- [x] **Step 2: Update .env.example**
 
 Edit `.env.example`: replace `GIN_MODE=debug` with `APP_ENV=development`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add go.mod go.sum .env.example
@@ -69,7 +69,7 @@ git commit -m "build: swap gin for fiber v3 and swaggerui deps"
 - Consumes: nothing.
 - Produces: `config.Config` with field `AppEnv string` (no `GinMode`). DTOs tagged with `validate:` instead of `binding:`. Handlers (Task 4) and router (Task 5) rely on `cfg.AppEnv` and the validate tags.
 
-- [ ] **Step 1: Rename GinMode → AppEnv in config**
+- [x] **Step 1: Rename GinMode → AppEnv in config**
 
 In `pkg/config/config.go`, change:
 
@@ -83,7 +83,7 @@ AppEnv     string
 
 and in `Load()` change `GinMode: getenv("GIN_MODE", "debug")` to `AppEnv: getenv("APP_ENV", "development")`.
 
-- [ ] **Step 2: Migrate DTO tags**
+- [x] **Step 2: Migrate DTO tags**
 
 In `internal/dto/auth.go`, change all `binding:` tags to `validate:`:
 
@@ -101,7 +101,7 @@ type LoginRequest struct {
 
 In `internal/dto/todo.go`, change `binding:"required"` to `validate:"required"` on `CreateTodoRequest.Title`.
 
-- [ ] **Step 3: Verify build + commit**
+- [x] **Step 3: Verify build + commit**
 
 Run: `go build ./pkg/config/... ./internal/dto/...`
 Expected: compiles (these packages don't import gin).
@@ -129,7 +129,7 @@ git commit -m "refactor: rename GinMode to AppEnv, migrate dto tags to validate"
   - `CORS() fiber.Handler`.
   - Router (Task 5) and handlers (Task 4) use these exact signatures.
 
-- [ ] **Step 1: Rewrite auth.go**
+- [x] **Step 1: Rewrite auth.go**
 
 Replace `pkg/middleware/auth.go` with:
 
@@ -183,7 +183,7 @@ func CurrentUser(c fiber.Ctx) *models.User {
 }
 ```
 
-- [ ] **Step 2: Rewrite cors.go**
+- [x] **Step 2: Rewrite cors.go**
 
 Replace `pkg/middleware/cors.go` with:
 
@@ -205,7 +205,7 @@ func CORS() fiber.Handler {
 }
 ```
 
-- [ ] **Step 3: Rewrite auth_test.go**
+- [x] **Step 3: Rewrite auth_test.go**
 
 Replace `pkg/middleware/auth_test.go` with:
 
@@ -342,12 +342,12 @@ func TestRequireRole(t *testing.T) {
 }
 ```
 
-- [ ] **Step 4: Run middleware tests**
+- [x] **Step 4: Run middleware tests**
 
 Run: `go test ./pkg/middleware/... -count=1`
 Expected: PASS (5 tests). Note: `go build ./...` at the repo level may fail until Task 5 — that is expected; only `pkg/middleware` must compile and pass here.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add pkg/middleware/auth.go pkg/middleware/cors.go pkg/middleware/auth_test.go
@@ -367,7 +367,7 @@ git commit -m "feat: rewrite auth and cors middleware for fiber v3"
 - Consumes: `middleware.CurrentUser(c fiber.Ctx) *models.User`; `services.AuthService.Register/Login`, `services.TodoService.{ListByOwner,Create,Get,Update,Delete}`, `services.UserService.{Me?no,List}`; `services.ErrEmailTaken`, `services.ErrInvalidCredentials`, `services.ErrNotFound`; `dto.{RegisterRequest,LoginRequest,LoginResponse,UserResponse,CreateTodoRequest,UpdateTodoRequest,TodoResponse,ErrorResponse,FromUser,FromTodo}`; `models.RoleAdmin`.
 - Produces: handler methods with signature `func(c fiber.Ctx) error` (e.g. `(*AuthHandler).Register`, `(*TodoHandler).List`, `(*UserHandler).Me`). Router (Task 5) registers these by name.
 
-- [ ] **Step 1: Rewrite common.go**
+- [x] **Step 1: Rewrite common.go**
 
 Replace `internal/handlers/common.go` with:
 
@@ -385,7 +385,7 @@ func respondError(c fiber.Ctx, status int, message string) error {
 }
 ```
 
-- [ ] **Step 2: Rewrite auth.go**
+- [x] **Step 2: Rewrite auth.go**
 
 Replace `internal/handlers/auth.go` with (keep the swag `@` annotation blocks exactly as they are now — only the body changes):
 
@@ -463,7 +463,7 @@ func (h *AuthHandler) Login(c fiber.Ctx) error {
 }
 ```
 
-- [ ] **Step 3: Rewrite todo.go**
+- [x] **Step 3: Rewrite todo.go**
 
 Replace `internal/handlers/todo.go` with (keep all swag annotations):
 
@@ -636,7 +636,7 @@ func respondTodoError(c fiber.Ctx, err error) error {
 }
 ```
 
-- [ ] **Step 4: Rewrite user.go**
+- [x] **Step 4: Rewrite user.go**
 
 Replace `internal/handlers/user.go` with (keep swag annotations):
 
@@ -696,7 +696,7 @@ func (h *UserHandler) List(c fiber.Ctx) error {
 }
 ```
 
-- [ ] **Step 5: Rewrite handlers_test.go**
+- [x] **Step 5: Rewrite handlers_test.go**
 
 Replace `internal/handlers/handlers_test.go` with:
 
@@ -905,7 +905,7 @@ func mustRead(t *testing.T, resp *http.Response) []byte {
 
 Note: `newTestRouter` calls `router.New`, which is rewritten in Task 5 — this task's test cannot compile until Task 5 lands. That is expected; run the full suite in Task 5 Step 3.
 
-- [ ] **Step 6: Commit handler code (without passing tests yet)**
+- [x] **Step 6: Commit handler code (without passing tests yet)**
 
 ```bash
 git add internal/handlers/common.go internal/handlers/auth.go internal/handlers/todo.go internal/handlers/user.go internal/handlers/handlers_test.go
@@ -927,7 +927,7 @@ git commit -m "feat: rewrite handlers for fiber v3"
 - Consumes: `handlers.{NewAuthHandler,NewTodoHandler,NewUserHandler}` with Fiber methods; `middleware.{RequireAuth,RequireRole,CORS}`; `services.{NewAuthService,NewTodoService,NewUserService}`; `config.Config` (now has `AppEnv`); `models.RoleAdmin`.
 - Produces: `router.New(db *gorm.DB, cfg *config.Config) *fiber.App`; `main.go` boots Fiber, mounts swaggerui, serves `:PORT`.
 
-- [ ] **Step 1: Rewrite router.go**
+- [x] **Step 1: Rewrite router.go**
 
 Replace `internal/router/router.go` with:
 
@@ -996,7 +996,7 @@ func New(db *gorm.DB, cfg *config.Config) *fiber.App {
 }
 ```
 
-- [ ] **Step 2: Rewrite main.go**
+- [x] **Step 2: Rewrite main.go**
 
 Replace `main.go` with:
 
@@ -1057,7 +1057,7 @@ func main() {
 }
 ```
 
-- [ ] **Step 3: Regenerate swagger docs, delete docs.go, update .gitignore**
+- [x] **Step 3: Regenerate swagger docs, delete docs.go, update .gitignore**
 
 Run:
 
@@ -1070,12 +1070,12 @@ Add `docs/docs.go` to `.gitignore` (append to the existing file).
 
 Verify `docs/swagger.json` and `docs/swagger.yaml` exist and `docs/docs.go` does not.
 
-- [ ] **Step 4: Run full test suite**
+- [x] **Step 4: Run full test suite**
 
 Run: `go mod tidy && go test ./... -race -count=1`
 Expected: ALL tests PASS (services, middleware, handlers). If `go mod tidy` complains about missing gin packages, first `go mod tidy` may need `-e`; the clean sequence is: tidy, then `go test ./... -race -count=1`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -1093,12 +1093,12 @@ git commit -m "feat: wire fiber router, main, and swaggerui; drop docs.go"
 - Consumes: final `go.mod`.
 - Produces: accurate README.
 
-- [ ] **Step 1: Confirm module count**
+- [x] **Step 1: Confirm module count**
 
 Run: `go list -m all | wc -l`
 Expected: ~77 (down from 114 with Gin). If it shows ~98, `docs/docs.go` exists or is still imported — remove it and re-run `go mod tidy`.
 
-- [ ] **Step 2: Update README**
+- [x] **Step 2: Update README**
 
 Update `README.md`:
 - Replace Gin references with Fiber v3.
@@ -1108,7 +1108,7 @@ Update `README.md`:
 - Regenerate docs step: add `rm docs/docs.go` after `swag init` (keep only swagger.json/yaml committed).
 - Note that swagger UI serves `docs/swagger.json` from disk.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add README.md
@@ -1125,12 +1125,12 @@ git commit -m "docs: update README for fiber v3"
 - Consumes: final binary + `.env`.
 - Produces: verified boot, health, swagger, register.
 
-- [ ] **Step 1: Boot the server**
+- [x] **Step 1: Boot the server**
 
 Run: `go run .` (with `.env` pointing at the empty Neon DB).
 Expected: server starts on `:8080`, AutoMigrate creates `users` and `todos` tables.
 
-- [ ] **Step 2: Smoke-test endpoints**
+- [x] **Step 2: Smoke-test endpoints**
 
 Run:
 
@@ -1142,7 +1142,7 @@ curl -s -X POST http://localhost:8080/api/v1/auth/register \
   -d '{"email":"smoke@example.com","password":"password123"}'           # expect 201 + JSON user
 ```
 
-- [ ] **Step 3: Stop the server and commit any fixes**
+- [x] **Step 3: Stop the server and commit any fixes**
 
 Kill the server (`Ctrl+C`). If any endpoint misbehaves, fix in the relevant file and rerun `go test ./... -race -count=1` before committing.
 
